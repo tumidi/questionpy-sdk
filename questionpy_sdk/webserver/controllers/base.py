@@ -2,12 +2,11 @@
 #  The QuestionPy SDK is free software released under terms of the MIT license. See LICENSE.md.
 #  (c) Technische Universität Berlin, innoCampus <info@isis.tu-berlin.de>
 
-from typing import TYPE_CHECKING, Literal, overload
+from typing import TYPE_CHECKING
 
 from yarl import URL
 
 from questionpy_common.manifest import Manifest
-from questionpy_sdk.webserver.controllers.errors import MissingQuestionStateError
 from questionpy_sdk.webserver.state import StateManager
 from questionpy_server import WorkerPool
 
@@ -38,17 +37,3 @@ class BaseController:
     @property
     def _state_manager(self) -> StateManager:
         return self._webserver.state_manager
-
-    @overload
-    async def _get_question_state(self, *, allow_missing: Literal[False] = ...) -> str: ...
-
-    @overload
-    async def _get_question_state(self, *, allow_missing: Literal[True]) -> str | None: ...
-
-    async def _get_question_state(self, *, allow_missing: bool = False) -> str | None:
-        try:
-            return await self._state_manager.read_question_state()
-        except FileNotFoundError as err:
-            if allow_missing:
-                return None
-            raise MissingQuestionStateError from err
